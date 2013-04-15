@@ -1,0 +1,5 @@
+name = Auto-download
+description = allows nodes to download files on page load (with other configurable options).
+core = 7.x
+package = User Interface
+version = 7.x-1.0 alpha
