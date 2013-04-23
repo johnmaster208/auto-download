@@ -1,7 +1,41 @@
 <?php
 
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * hook_schema
  */
+ function autodownload_schema(){
+     $schema['autodownloads'] = array(
+        'description' => 'Store references to nodes which have automatic downloads attached to them.',
+        'fields' => array(
+          'dlid' => array(
+            'description' => 'The unique ID for the automatic download assignment.',
+            'type' => 'serial',
+            'size' => 'big',
+            'unsigned' => TRUE,
+            'not null' => TRUE,
+          ),//end dlid
+           'nid' => array(
+            'description' => 'The Drupal node or page URL which has an auto download.',
+            'type' => 'varchar',
+            'length' => 255,
+            'not null' => TRUE,
+          ),//end description
+           'url' => array(
+            'description' => 'The location of the file to be automatically downloaded.',
+            'type' => 'text',
+            'size' => 'medium', 
+            'not null' => FALSE,
+          ),//end download_url
+           'count' => array(
+            'description' => 'Download counter for the auto-download page.',
+            'type' => 'int',
+            'size' => 'big',
+            'not null' => FALSE,
+          ),//end count
+        ),//end fields
+        //Index & primary key declaration
+        'primary key' => array('dlid'),
+     );//end schema
+     return $schema;
+ }//end function autodownload_schema
 ?>
