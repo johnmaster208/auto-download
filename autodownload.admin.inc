@@ -9,46 +9,59 @@
 *shows existing assignments for auto-downloads
 */
 function autodownload_list_current_pages(){
-    /*$form['list_current']['current_nodes'] = array(
-    '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-    '#title' => 'Current Nodes with Autodownloads',
-    '#description' => 'Listed below are the nodes which currently have automatic downloads assigned to them. 
-    For this module version, only one (1) download per node may be assigned. If you create a new auto-download assignment 
-    on a node which already has one, the pre-existing assignment will be lost. To edit an existing automatic 
-    download configuration, click the "edit" link to the right of the node.', 
-    );*/
-    //do query to grab all existing download/node assignments
+    //create form elements
+    
+    $headers = array(
+        array('data' => t('Page')),  
+        array('data' => t('Links To...')),  
+        array('data' => t('Enabled')),
+        array('data' => t('Edit')),
+        array('data' => t('Delete')),  
+      );
+    
+    $caption =   'Listed below are the nodes which currently have automatic downloads assigned to them. 
+      For this module version, only one (1) download per node may be assigned. If you create a new auto-download assignment 
+      on a node which already has one, the pre-existing assignment will be lost. To edit an existing automatic 
+      download configuration, click the "edit" link to the right of the node.';
+    
+    //query the db for data
     $result = db_query("SELECT * FROM {autodownloads}");
-    //Add Create New Download+ link at the top right
-    $output = "<a style='text-decoration:none; float:right;' href=\"autodownload/create\">Create New+</a>";
-    //output results in dynamic table
-    $output .= "<h1>Current Automatic Downloads</h1>";
-    $output .= "<table>";
-    //table headers
-    $output .= "<th>Page</th>";
-    $output .= "<th>Automatically Downloads this file</th>";
-    $output .= "<th><!--Edit Link header--></th>";
-    $output .= "<th><!--Delete Link header--></th>";
+    
     foreach($result as $row){
-    //table rows
-    $output .= "<tr>";
-      $output .= "<td>$row->nid</td>";
-      $output .= "<td>$row->url</td>";
-      $output .= "<td><a href=\"edit?dl=$row->nid\">Edit</a></td>";
-      $output .= "<td><a href-'#'>Delete</a></td>";
-    $output .= "</tr>";
-    }
-     $output .= "</table>";
+    //grab the page
+    $form['list_current']['node'] = array(
+      '#markup' => $row->nid,
+      '#default_value' => $row->nid,
+    );
+    //grab the url
+    $form['list_current']['url'] = array(
+      '#markup' => $row->url,
+      '#default_value' => $row->url,
+    ); 
+    //grab the default checkbox value for enabled
+    $form['list_current']['enabled'] = array(
+      '#title' => t('Enabled'),
+      '#type' => 'checkbox',
+      '#default_value' => $row->enabled, 
+    );
+    
+    $rows[] = array(
+        array('data' => $form['list_current']['node']),
+        array('data' => $form['list_current']['url']),
+        array('data' => $form['list_current']['enabled']),
+        array('data' => l(t('Edit'), 'admin/config/user-interface/autodownload/edit' . '/' . $row->dlid)),
+        array('data' => l(t('Delete'), 'admin/config/user-interface/autodownload/delete' . '/' . $row->dlid)),
+      );
+    }//end foreach
      
-     return $output;
+return theme('table', array('header' => $headers,'rows' => $rows, 'caption' => $caption));
 }
 
 /*
 *create_new_download
 *allows admins to add a new assignment
 */
-function autodownload_create_new_download_form(){
+function autodownload_create_new_download_form($form, &$form_state){
     $form['new_download']['settings'] = array(
         '#type' => 'fieldset',
         '#title' => 'Create New Auto-download assignment',
@@ -91,7 +104,7 @@ function autodownload_create_new_download_form_submit($form, &$form_state){
     $success = drupal_write_record($table, $record);
      
      if($success){
-         $form_state['redirect'] = 'admin/config/user-interface/autodownload/settings';
+         $form_state['redirect'] = 'admin/config/user-interface/autodownload/list';
          drupal_set_message('The automatic download assignment was created.');  
      }
     else{
@@ -100,37 +113,88 @@ function autodownload_create_new_download_form_submit($form, &$form_state){
 }
 
 /*
-*edit_existing_download
-* accepts passed $assignment and edits the existing form
-*/
-function autodownload_edit_existing_download_form($assignment){
-    $assignment = $_REQUEST['dl'];
-    //query the {autodownloads} table for info related to our parameter
-    $result = db_query("SELECT * FROM {autodownloads} WHERE 'nid' = $assignment");
-    //build the form
-    $form['existing_download']['settings'] = array(
-      '#type' => 'fieldset',
-      '#title' => "Edit the \'$result->nid\' assignment",
-      '#description' => 'Fill out the fields to change this assignment',
-      '#collapsible' => TRUE,       
-    );
-    return $form;
-}
-
-/*
 * autodownload_edit_node_form()
 * 
 */
-function autodownload_edit_node_form(){
-    
+function autodownload_edit_node_form($form, &$form_state, $dlid){
+    //query the {autodownloads} table for info related to our parameter
+    $result = db_query("SELECT * FROM {autodownloads} WHERE {autodownloads}.dlid = :dlid", array(':dlid' => $dlid));
+    $form['edit_download']['settings'] = array(
+         '#type' => 'fieldset',
+         '#title' => 'Edit this Auto-download assignment',
+         '#description' => 'Fill out the fields to create a new auto-download',
+         '#collapsible' => FALSE,       
+         );
+    foreach($result as $row){
+     $form['edit_download']['settings']['page'] = array(
+         '#type' => 'textfield',
+         '#name' => 'page', 
+         '#title' => t('Page or Node ID'),
+         '#description' => t('Enter the name of the page or node in this field. It can be a node ID, such as node/123 or an alias, like products/phone-systems.'),
+         '#length' => 150,
+         '#default_value' => $row->nid,
+         );
+     $form['edit_download']['settings']['url'] = array(
+         '#type' => 'textarea',
+         '#name' => 'url',
+         '#title' => t('File to be downloaded'),
+         '#description' => t('Enter a link to the file which will be automatically downloaded.'),
+         '#cols' => 50,
+         '#rows' => 5,
+         '#resizable' => TRUE,
+         '#default_value' => $row->url,
+         );
+     }//end foreach
+     $form['submit'] = array(
+         '#type' => 'submit',
+         '#value' => t('Save Configuration'),
+         );
+     return $form;
 }
+
+function autodownload_delete_node_form($form, &$form_state, $dlid){
+    //query the {autodownloads} table for info related to our parameter
+    $result = db_query("SELECT * FROM {autodownloads} WHERE 'dlid' = $dlid");
+    foreach($result as $row){
+    $form['delete_download']['settings'] = array(
+         '#type' => 'fieldset',
+         '#title' => 'Create New Auto-download assignment',
+         '#description' => 'Fill out the fields to create a new auto-download',
+         '#collapsible' => TRUE,       
+         );
+     $form['delete_download']['settings']['page'] = array(
+         '#type' => 'textfield',
+         '#name' => 'page', 
+         '#title' => t('Page or Node ID'),
+         '#description' => t('Enter the name of the page or node in this field. It can be a node ID, such as node/123 or an alias, like products/phone-systems.'),
+         '#length' => 150,
+         '#default_value' => $row->nid,
+         );
+     $form['delete_download']['settings']['url'] = array(
+         '#type' => 'textarea',
+         '#name' => 'url',
+         '#title' => t('File to be downloaded'),
+         '#description' => t('Enter a link to the file which will be automatically downloaded.'),
+         '#cols' => 50,
+         '#rows' => 5,
+         '#resizable' => TRUE,
+         '#default_value' => $row->url,
+         );
+     }//end foreach
+     $form['submit'] = array(
+         '#type' => 'submit',
+         '#value' => t('Save Configuration'),
+         );
+     return $form;
+}
+
 
 /*
 * autodownload_configure_advanced_form()
 * additional settings for auto-downloads; timeOut, UI Dialogs and enhanced library integration
 */
 
-function autodownload_configure_advanced_form(){
+function autodownload_configure_advanced_form($form, &$form_state){
     
     $form['advanced_settings']['javascript'] = array(
       '#type' => 'fieldset',
@@ -144,6 +208,23 @@ function autodownload_configure_advanced_form(){
       '#title' => 'Enable setTimeout function for node pages.',
       '#description' => 'Enabling this option will allow you to set a timer on all auto-downloads. The setTimeout function will default to 5 seconds (5000ms).',
       '#default' => FALSE, 
+    );
+    if(variable_get('auto_dl_timeouts_enable') == 1){
+    $form['advanced_settings']['javascript']['timeout_timer'] = array(
+        '#type' => 'textfield',
+        '#name' => 'autodl_timeout_timer',
+        '#value' => variable_get('autodl_timeout_timer',5),
+        '#title' => 'Timeout for auto-downloads',
+        '#description' => 'Enter a number of seconds to wait until the download begins.',
+    );
+    }
+
+    $form['advanced_settings']['javascript']['dialogs'] = array(
+        '#type' => 'checkbox',
+        '#name' => 'autodl_enable_dialogs',
+        '#value' => variable_get('autodl_dialogs_enable',0),
+        '#title' => 'Enable jQuery UI Dialog popups for File Downloads',
+        '#description' => 'Enabling this option will '
     );
     $form['submit'] = array(
         '#type' => 'submit',
@@ -163,5 +244,11 @@ function autodownload_configure_advanced_form_submit($form, &$form_state){
     }
     
 }
+
+
+/* $form['list_current']['current_nodes']['submit'] = array(
+     '#type' => 'submit',
+     '#value' => 'Save Configuration',  
+   );*/
 
 ?>

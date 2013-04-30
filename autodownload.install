@@ -32,6 +32,12 @@
             'size' => 'big',
             'not null' => FALSE,
           ),//end count
+           'enabled' => array(
+            'description' => 'Allows toggling of the auto-download',
+            'type' => int,
+            'not null' => TRUE,
+            'default' => 0,
+           ),//end enabled
         ),//end fields
         //Index & primary key declaration
         'primary key' => array('dlid'),
