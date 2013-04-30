@@ -34,7 +34,7 @@
           ),//end count
            'enabled' => array(
             'description' => 'Allows toggling of the auto-download',
-            'type' => int,
+            'type' => 'int',
             'not null' => TRUE,
             'default' => 0,
            ),//end enabled

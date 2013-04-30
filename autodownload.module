@@ -49,7 +49,7 @@
        'page arguments' => array('autodownload_edit_node_form',5),
        'access arguments' => array('administer site configuration'),
        'file' => 'autodownload.admin.inc',
-       'type' => MENU_CALLBACK,
+       'type' => MENU_VISIBLE_IN_BREADCRUMB,
      );
      $items['admin/config/user-interface/autodownload/delete/%'] = array(
         'title' => 'Delete Auto-Download',
@@ -58,7 +58,7 @@
         'page arguments' => array('autodownload_delete_node_form',5),
         'access arguments' => array('administer site configuration'),
         'file' => 'autodownload.admin.inc',
-        'type' => MENU_CALLBACK,
+        'type' => MENU_VISIBLE_IN_BREADCRUMB,
       );
      return $items;
  }
