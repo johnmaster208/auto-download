@@ -32,7 +32,7 @@
        'file' => 'autodownload.admin.inc',
        'type' => MENU_LOCAL_TASK,        
      );
-     $items['admin/config/user-interface/autodownload/advanced'] = array(
+     /*$items['admin/config/user-interface/autodownload/advanced'] = array(
         'title' => 'Advanced',
         'description' => 'Configure advanced options for Automatic Downloads',
         'page callback' => 'drupal_get_form',
@@ -41,7 +41,7 @@
         'access arguments' => array('administer site configuration'),
         'file' => 'autodownload.admin.inc',
         'type' => MENU_LOCAL_TASK, 
-      );
+      );*/
      $items['admin/config/user-interface/autodownload/edit/%'] = array(
        'title' => 'Edit Auto-Download',
        'description' => 'Edits an existing auto-download assignment',
@@ -62,4 +62,22 @@
       );
      return $items;
  }
+   function autodownload_download_file($node,$url){
+    //grab the current path in Drupal
+    $alias = request_path();
+    if($alias == $node){
+                 drupal_add_js(
+                "jQuery(document).ready(function(){ 
+                    var timer = setTimeout(window.open('$url'), 3000);
+                    clearTimeout(timer);
+                 });
+                 ", 'inline'
+                 );
+    }//endif
+    else{
+        //do nothing, the node doesn't have an autodownload;
+        return;
+    }//endelse
+  }//end asterisk_auto_dl
+  
 ?>

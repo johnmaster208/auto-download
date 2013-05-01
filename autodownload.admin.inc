@@ -41,8 +41,12 @@ function autodownload_list_current_pages(){
         array('data' => l(t('Delete'), 'admin/config/user-interface/autodownload/delete' . '/' . $row->dlid)),
       );
     }//end foreach
-     
-return theme('table', array('header' => $headers,'rows' => $rows, 'caption' => $caption));
+    if(empty($rows)){
+     return "<h3>You haven't added any Auto-download Assignments yet.</h3><h1>Click the 'Create+' tab to get started!</h1>";
+    }
+    else{
+     return theme('table', array('header' => $headers,'rows' => $rows, 'caption' => $caption));
+    }
 }
 
 /*
@@ -175,8 +179,6 @@ function autodownload_edit_node_form_validate($element, &$form_state){
     //add this later
 }
 
-
-
 function autodownload_delete_node_form($form, &$form_state, $dlid){
     //query the {autodownloads} table for info related to our parameter
     $result = db_query("SELECT * FROM {autodownloads} WHERE {autodownloads}.dlid = :dlid", array(':dlid' => $dlid));
@@ -206,7 +208,7 @@ function autodownload_delete_node_form_submit($form, &$form_state){
     $success = db_query("DELETE FROM {autodownloads} WHERE dlid = :dlid",array(':dlid' => $form_state['values']['dlid']));
      if($success){
          $form_state['redirect'] = 'admin/config/user-interface/autodownload/list';
-         drupal_set_message("Successfully deleted auto-assignment.","warning");
+         drupal_set_message("Successfully deleted auto-assignment.");
          cache_clear_all();
      }
     else{
@@ -222,6 +224,7 @@ function autodownload_delete_node_form_validate($element, &$form_state){
 * additional settings for auto-downloads; timeOut, UI Dialogs and enhanced library integration
 */
 
+/*
 function autodownload_configure_advanced_form($form, &$form_state){
     
     $form['advanced_settings']['javascript'] = array(
@@ -272,11 +275,5 @@ function autodownload_configure_advanced_form_submit($form, &$form_state){
     }
     
 }
-
-
-/* $form['list_current']['current_nodes']['submit'] = array(
-     '#type' => 'submit',
-     '#value' => 'Save Configuration',  
-   );*/
-
+*/
 ?>
