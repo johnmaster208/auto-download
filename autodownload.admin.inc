@@ -21,7 +21,7 @@ function autodownload_list_current_pages(){
     
     $headers = array(
         array('data' => t('Page')),  
-        array('data' => t('Links To...')),  
+        array('data' => t('Automatically Downloads...')),  
         array('data' => t('Enabled')),
         array('data' => t('Edit')),
         array('data' => t('Delete')),  

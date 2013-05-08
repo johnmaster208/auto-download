@@ -5,6 +5,23 @@
  * and open the template in the editor.
  */
  
+
+//get current theme
+DEFINE('THEME',variable_get('theme_default','none'));
+
+/*
+ * hook_permission
+ */
+
+ function autodownload_permission(){
+     return array(
+         'administer auto-downloads' => array(
+             'title' => t('Administer auto-downloads'),
+             'description' => t('Allows users to administer auto-downloads on the site'),
+         ),
+     );
+ }
+
  /*
  * hook_menu
  */
@@ -21,6 +38,7 @@
      $items['admin/config/user-interface/autodownload/list'] = array(
        'title' => 'Current Auto-downloads',
        'weight' => -1,
+       'access arguments' => array('TRUE'),
        'type' => MENU_DEFAULT_LOCAL_TASK,
      );
      $items['admin/config/user-interface/autodownload/create'] = array(
@@ -28,7 +46,7 @@
        'description' => 'Creates a new node auto-download assignment',
        'page callback' => 'drupal_get_form',
        'page arguments' => array('autodownload_create_new_download_form'),
-       'access arguments' => array('administer site configuration'),
+       'access arguments' => array('TRUE'),
        'file' => 'autodownload.admin.inc',
        'type' => MENU_LOCAL_TASK,        
      );
@@ -38,7 +56,7 @@
         'page callback' => 'drupal_get_form',
         'page arguments' => array('autodownload_configure_advanced_form'),
         'weight' => 1,
-        'access arguments' => array('administer site configuration'),
+        'access arguments' => array('TRUE'),
         'file' => 'autodownload.admin.inc',
         'type' => MENU_LOCAL_TASK, 
       );*/
@@ -47,7 +65,7 @@
        'description' => 'Edits an existing auto-download assignment',
        'page callback' => 'drupal_get_form',
        'page arguments' => array('autodownload_edit_node_form',5),
-       'access arguments' => array('administer site configuration'),
+       'access arguments' => array('TRUE'),
        'file' => 'autodownload.admin.inc',
        'type' => MENU_VISIBLE_IN_BREADCRUMB,
      );
@@ -56,16 +74,16 @@
         'description' => 'Deletes an existing auto-download assignment',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('autodownload_delete_node_form',5),
-        'access arguments' => array('administer site configuration'),
+        'access arguments' => array('TRUE'),
         'file' => 'autodownload.admin.inc',
         'type' => MENU_VISIBLE_IN_BREADCRUMB,
       );
      return $items;
  }
-   function autodownload_download_file($node,$url){
+   function autodownload_download_file($node,$url,$method){
     //grab the current path in Drupal
     $alias = request_path();
-    if($alias == $node){
+    if($alias == $node && $method == 'simple'){
                  drupal_add_js(
                 "jQuery(document).ready(function(){ 
                     var timer = setTimeout(window.open('$url'), 3000);
@@ -74,10 +92,24 @@
                  ", 'inline'
                  );
     }//endif
+    elseif($alias == $node && $method == 'ui'){
+    //case for jQueryUI dialogs download, coming in v2
+    }
     else{
         //do nothing, the node doesn't have an autodownload;
         return;
     }//endelse
   }//end asterisk_auto_dl
   
+  function autodownload_preprocess_page(&$vars,$method){
+      $method = variable_get('autodownload_method','simple');
+      if(module_exists('autodownload')){
+      //if auto-downloads exist and are turned on, then run some pre-process functions on them
+      $path = request_path();
+      $result = db_query("SELECT * FROM {autodownloads} WHERE nid = :path AND enabled = 1", array(':path' => $path));
+      foreach($result as $row){
+          autodownload_download_file($row->nid, $row->url,$method);
+      }
+  }
+  }
 ?>
