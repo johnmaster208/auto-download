@@ -224,56 +224,81 @@ function autodownload_delete_node_form_validate($element, &$form_state){
 * additional settings for auto-downloads; timeOut, UI Dialogs and enhanced library integration
 */
 
-/*
 function autodownload_configure_advanced_form($form, &$form_state){
-    
-    $form['advanced_settings']['javascript'] = array(
+    //Download method: can be simple, html5 or jQuery UI
+    $form['advanced_settings']['javascript']['method'] = array(
       '#type' => 'fieldset',
       '#collapsible' => TRUE,
-      '#title' => 'JavaScript Settings', 
+      '#title' => t('Method Settings'),
+      '#description' => 'Choose the method by which the auto-download initiates. The two (2) methods are as follows: 
+       <ul>
+          <li>Simple -- Uses a standard "window.open() function to an external URL</li> 
+          <li>iFrame -- Adds a borderless iFrame to the document with "src" attribute set to the target URL</li>
+          <li>HTML5 -- Instantiates an HTML5 hyperlink on the page with the "download" attribute set to the URL</li>
+      </ul>',
     );
-    $form['advanced_settings']['javascript']['enable_timeouts'] = array(
-      '#type' => 'checkbox',
-      '#name' => 'autodl_enable_timeouts',
-      '#value' => variable_get('autodl_timeouts_enable',0),
-      '#title' => 'Enable setTimeout function for node pages.',
-      '#description' => 'Enabling this option will allow you to set a timer on all auto-downloads. The setTimeout function will default to 5 seconds (5000ms).',
-      '#default' => FALSE, 
-    );
-    if(variable_get('auto_dl_timeouts_enable') == 1){
-    $form['advanced_settings']['javascript']['timeout_timer'] = array(
-        '#type' => 'textfield',
-        '#name' => 'autodl_timeout_timer',
-        '#value' => variable_get('autodl_timeout_timer',5),
-        '#title' => 'Timeout for auto-downloads',
-        '#description' => 'Enter a number of seconds to wait until the download begins.',
-    );
-    }
-
-    $form['advanced_settings']['javascript']['dialogs'] = array(
-        '#type' => 'checkbox',
-        '#name' => 'autodl_enable_dialogs',
-        '#value' => variable_get('autodl_dialogs_enable',0),
+    $form['advanced_settings']['javascript']['method']['autodl_method'] = array(
+        '#type' => 'select',
         '#title' => 'Enable jQuery UI Dialog popups for File Downloads',
-        '#description' => 'Enabling this option will '
+        '#default_value' => variable_get('autodl_method','simple'),
+        '#options' => array(
+            'simple' => t('Simple'),
+            'iframe' => t('iFrame'),
+            'html5' => t('HTML5'),
+        ),
+    );    
+    //jqueryUI settings: allows configuring of jQuery UI dialog window for download
+    $form['advanced_settings']['javascript']['jqueryui'] = array(
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#title' => t('jQuery Dialog Settings'),
+      '#description' => t('Integration of jQuery UI Dialogs'),
     );
+    $form['advanced_settings']['javascript']['jqueryui']['autodl_dialog1'] = array(
+      '#type' => 'checkbox',
+      '#default_value' => variable_get('autodl_dialog1'), 
+      '#title' => t('Enable standard jQuery UI Dialog for autodownloads.'),
+      '#description' => t('Enabling this option will allow you to use a simple jQuery UI dialog with the auto-download. The title and caption will be built for you.'),
+    );
+    //timeout settings: set to a second interval, breaks down to ms later...
+    $form['advanced_settings']['javascript']['timeouts'] = array(
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#title' => t('Timeout Settings'),
+      '#description' => t('Timeout settings allow for a second delay for your download'),
+    );
+    $form['advanced_settings']['javascript']['timeouts']['autodl_timeout'] = array(
+      '#type' => 'checkbox',
+      '#default_value' => variable_get('autodl_timeout'), 
+      '#title' => t('Enable setTimeout function for node pages.'),
+      '#description' => t('Enabling this option will allow you to set a timer on all auto-downloads. The setTimeout function will default to 5 seconds (5000ms).'), 
+    );
+    $form['advanced_settings']['javascript']['timeouts']['autodl_timeout_seconds'] = array(
+      '#type' => 'textfield',
+      '#default_value' => variable_get('autodl_timeout_seconds',5),
+      '#size' => 1, 
+      '#title' => t('Timeout in Seconds.'),
+      '#description' => t('Enter the value in seconds for timeouts. Default is set to 5 seconds.'), 
+    );
+    //submit the form
     $form['submit'] = array(
         '#type' => 'submit',
         '#value' => t('Save Configuration'),
     );
     return $form;
 }
-function autodownload_configure_advanced_form_submit($form, &$form_state){
-    
-    if ($form_state['values']['autodl_enable_timeouts'] == 1){
-    variable_set('autodl_timeouts_enable',1);
-    drupal_set_message("Autodownload timeouts have been enabled.");
+function autodownload_configure_advanced_form_submit($form, &$form_state){  
+    //set variables for the form submissions
+    variable_set('autodl_method', $form_state['values']['autodl_method']);
+    if($form_state['values']['autodl_timeout'] == 1){
+    variable_set('autodl_timeout',1);
+    }
+    variable_set('autodl_timeout_seconds', $form_state['values']['autodl_timeout_seconds']);
+    if($form_state['values']['autodl_dialog1'] == 1){
+    variable_set('autodl_dialog1',1);
     }
     else{
-    variable_set('autodl_timeouts_enable',0);
-    drupal_set_message("Autodownload timeouts have been disabled.");
+    variable_set('autodl_dialog1',0);
     }
-    
 }
-*/
 ?>

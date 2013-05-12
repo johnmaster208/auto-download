@@ -50,7 +50,7 @@ DEFINE('THEME',variable_get('theme_default','none'));
        'file' => 'autodownload.admin.inc',
        'type' => MENU_LOCAL_TASK,        
      );
-     /*$items['admin/config/user-interface/autodownload/advanced'] = array(
+     $items['admin/config/user-interface/autodownload/advanced'] = array(
         'title' => 'Advanced',
         'description' => 'Configure advanced options for Automatic Downloads',
         'page callback' => 'drupal_get_form',
@@ -59,7 +59,7 @@ DEFINE('THEME',variable_get('theme_default','none'));
         'access arguments' => array('TRUE'),
         'file' => 'autodownload.admin.inc',
         'type' => MENU_LOCAL_TASK, 
-      );*/
+      );
      $items['admin/config/user-interface/autodownload/edit/%'] = array(
        'title' => 'Edit Auto-Download',
        'description' => 'Edits an existing auto-download assignment',
@@ -84,16 +84,55 @@ DEFINE('THEME',variable_get('theme_default','none'));
     //grab the current path in Drupal
     $alias = request_path();
     if($alias == $node && $method == 'simple'){
+                 if(variable_get('autodl_timeout') == 1){
+                     $delay = variable_get('autodl_timeout_seconds') * 1000;
+                     //if timeout variable is set, then set delay on ready function
+                     drupal_add_js(
+                          "jQuery(document).ready(function(){   
+                             var timer = setTimeout(window.open('$url'), $delay);
+                             clearTimeout(timer);
+                          });
+                 ", 'inline'
+                 );
+                 }
+                 else{
                  drupal_add_js(
                 "jQuery(document).ready(function(){ 
-                    var timer = setTimeout(window.open('$url'), 3000);
+                    var timer = setTimeout(window.open('$url'), 5000);
                     clearTimeout(timer);
                  });
                  ", 'inline'
                  );
+                 }
     }//endif
-    elseif($alias == $node && $method == 'ui'){
-    //case for jQueryUI dialogs download, coming in v2
+    elseif($alias == $node && $method == 'iframe'){
+        //case for html5 'download' link
+        drupal_add_js("
+                jQuery(document).ready(function(){
+                var link = \"$url\";
+                var frame = document.createElement('iframe');
+                frame.setAttribute(\"width\",1);
+                frame.setAttribute(\"height\",1);
+                frame.setAttribute(\"frameborder\",0);
+                frame.setAttribute(\"src\",link);
+                document.body.appendChild(frame);
+                });
+                ", 'inline'
+                );
+    }
+    elseif($alias == $node && $method == 'html5'){
+        //case for html5 'download' link
+        drupal_add_js("
+                jQuery(document).ready(function(){
+                link = document.createElement('a');
+                link.setAttribute('id',\"auto-dl\");
+                link.setAttribute('href',\"$url\");
+                link.setAttribute('download',\"$url\");
+                document.body.appendChild(link);
+                document.getElementById('auto-dl').click();
+                });
+                ", 'inline'
+                );
     }
     else{
         //do nothing, the node doesn't have an autodownload;
@@ -102,7 +141,7 @@ DEFINE('THEME',variable_get('theme_default','none'));
   }//end asterisk_auto_dl
   
   function autodownload_preprocess_page(&$vars,$method){
-      $method = variable_get('autodownload_method','simple');
+      $method = variable_get('autodl_method');
       if(module_exists('autodownload')){
       //if auto-downloads exist and are turned on, then run some pre-process functions on them
       $path = request_path();
