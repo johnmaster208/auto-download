@@ -1,14 +1,6 @@
 <?php
-
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
- 
-
 //get current theme
 DEFINE('THEME',variable_get('theme_default','none'));
-
 /*
  * hook_permission
  */
@@ -85,60 +77,115 @@ DEFINE('THEME',variable_get('theme_default','none'));
     $alias = request_path();
     if($alias == $node && $method == 'simple'){
                  if(variable_get('autodl_timeout') == 1){
-                     $delay = variable_get('autodl_timeout_seconds') * 1000;
+                     $delay = variable_get('autodl_timeout_seconds');
                      //if timeout variable is set, then set delay on ready function
-                     drupal_add_js(
-                          "jQuery(document).ready(function(){   
-                             var timer = setTimeout(window.open('$url'), $delay);
-                             clearTimeout(timer);
-                          });
-                 ", 'inline'
-                 );
+                     $meta_tag = array(
+                         '#tag' => 'meta',
+                         '#attributes' => array(
+                             'http-equiv' => "refresh",
+                             'content' => "$delay;$url",
+                         ),
+                     );
+                     drupal_add_html_head($meta_tag,'autodl');
                  }
                  else{
-                 drupal_add_js(
-                "jQuery(document).ready(function(){ 
-                    var timer = setTimeout(window.open('$url'), 5000);
-                    clearTimeout(timer);
-                 });
-                 ", 'inline'
-                 );
+                     //timeouts are not enabled, just download the file
+                     $delay = 0;
+                     $meta_tag = array(
+                         '#tag' => 'meta',
+                         '#attributes' => array(
+                             'http-equiv' => "refresh",
+                             'content' => "$delay;$url",
+                         ),
+                     );
+                     drupal_add_html_head($meta_tag,'autodl');
                  }
     }//endif
     elseif($alias == $node && $method == 'iframe'){
-        //case for html5 'download' link
-        drupal_add_js("
-                jQuery(document).ready(function(){
-                var link = \"$url\";
-                var frame = document.createElement('iframe');
-                frame.setAttribute(\"width\",1);
-                frame.setAttribute(\"height\",1);
-                frame.setAttribute(\"frameborder\",0);
-                frame.setAttribute(\"src\",link);
-                document.body.appendChild(frame);
-                });
-                ", 'inline'
-                );
+        //case for iframe 'download' link with timeout
+        if(variable_get('autodl_timeout') == 1){
+            $delay = variable_get('autodl_timeout_seconds') * 1000;
+            drupal_add_js(
+                "jQuery(document).ready(function(){
+                    setTimeout(function(){
+                        var link = \"$url\";
+                        var frame = document.createElement(\"iframe\");
+                        frame.setAttribute(\"width\",1);
+                        frame.setAttribute(\"height\",1);
+                        frame.setAttribute(\"frameborder\",0);
+                        frame.setAttribute(\"src\",link);
+                        document.body.appendChild(frame);
+                    },$delay) 
+                });"
+                ,"inline");
+                    
+        }
+        else{
+            //case for iframe 'download' link without timeout
+            $delay = 0;
+            drupal_add_js(
+                "jQuery(document).ready(function(){
+                    setTimeout(function(){
+                        var link = \"$url\";
+                        var frame = document.createElement(\"iframe\");
+                        frame.setAttribute(\"width\",1);
+                        frame.setAttribute(\"height\",1);
+                        frame.setAttribute(\"frameborder\",0);
+                        frame.setAttribute(\"src\",link);
+                        document.body.appendChild(frame);
+                    },$delay) 
+                });"
+                ,"inline");
+        }
     }
     elseif($alias == $node && $method == 'html5'){
-        //case for html5 'download' link
+        //case for html5 'download' link with timeout
+        if(variable_get('autodl_timeout') == 1){
+        $delay = variable_get('autodl_timeout_seconds') * 1000;
         drupal_add_js("
                 jQuery(document).ready(function(){
+                setTimeout(function(){
                 link = document.createElement('a');
                 link.setAttribute('id',\"auto-dl\");
                 link.setAttribute('href',\"$url\");
                 link.setAttribute('download',\"$url\");
                 document.body.appendChild(link);
                 document.getElementById('auto-dl').click();
+                },$delay)
                 });
                 ", 'inline'
                 );
+        }
+        else{
+        //case for html5 'download' link without timeout
+        $delay = 0;
+        drupal_add_js("
+                jQuery(document).ready(function(){
+                setTimeout(function(){
+                link = document.createElement('a');
+                link.setAttribute('id',\"auto-dl\");
+                link.setAttribute('href',\"$url\");
+                link.setAttribute('download',\"$url\");
+                document.body.appendChild(link);
+                document.getElementById('auto-dl').click();
+                },$delay)
+                });
+                ", 'inline'
+                );    
+        }
+    }//end if html5
+    elseif(module_exists('overlay') && path_is_admin($_GET['q'])){
+        //this is a special case where the admin is looking at the page
+        //which has an auto-download, but we don't want to trigger it if
+        //they're looking at an overlay
+        //do nothing
+        return;
     }
     else{
         //do nothing, the node doesn't have an autodownload;
         return;
     }//endelse
-  }//end asterisk_auto_dl
+}//end asterisk_auto_dl
   
   function autodownload_preprocess_page(&$vars,$method){
       $method = variable_get('autodl_method');

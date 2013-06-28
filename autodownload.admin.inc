@@ -232,14 +232,14 @@ function autodownload_configure_advanced_form($form, &$form_state){
       '#title' => t('Method Settings'),
       '#description' => 'Choose the method by which the auto-download initiates. The two (2) methods are as follows: 
        <ul>
-          <li>Simple -- Uses a standard "window.open() function to an external URL</li> 
-          <li>iFrame -- Adds a borderless iFrame to the document with "src" attribute set to the target URL</li>
-          <li>HTML5 -- Instantiates an HTML5 hyperlink on the page with the "download" attribute set to the URL</li>
+          <li>Simple -- Uses drupal_add_html_head() to force a "refresh" meta tag with content attribute pointed at the download URL.</li> 
+          <li>iFrame -- Uses setTimeout() in Javascript to a borderless iFrame to the document with "src" attribute set to the target URL</li>
+          <li>HTML5 -- Similar to the iFrame method; Instantiates an HTML5 hyperlink on the page with the "download" attribute set to the URL</li>
       </ul>',
     );
     $form['advanced_settings']['javascript']['method']['autodl_method'] = array(
         '#type' => 'select',
-        '#title' => 'Enable jQuery UI Dialog popups for File Downloads',
+        '#title' => 'Select Auto-download method',
         '#default_value' => variable_get('autodl_method','simple'),
         '#options' => array(
             'simple' => t('Simple'),
@@ -247,19 +247,6 @@ function autodownload_configure_advanced_form($form, &$form_state){
             'html5' => t('HTML5'),
         ),
     );    
-    //jqueryUI settings: allows configuring of jQuery UI dialog window for download
-    $form['advanced_settings']['javascript']['jqueryui'] = array(
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#title' => t('jQuery Dialog Settings'),
-      '#description' => t('Integration of jQuery UI Dialogs'),
-    );
-    $form['advanced_settings']['javascript']['jqueryui']['autodl_dialog1'] = array(
-      '#type' => 'checkbox',
-      '#default_value' => variable_get('autodl_dialog1'), 
-      '#title' => t('Enable standard jQuery UI Dialog for autodownloads.'),
-      '#description' => t('Enabling this option will allow you to use a simple jQuery UI dialog with the auto-download. The title and caption will be built for you.'),
-    );
     //timeout settings: set to a second interval, breaks down to ms later...
     $form['advanced_settings']['javascript']['timeouts'] = array(
       '#type' => 'fieldset',
@@ -280,6 +267,19 @@ function autodownload_configure_advanced_form($form, &$form_state){
       '#title' => t('Timeout in Seconds.'),
       '#description' => t('Enter the value in seconds for timeouts. Default is set to 5 seconds.'), 
     );
+    //jqueryUI settings: allows configuring of jQuery UI dialog window for download
+    $form['advanced_settings']['javascript']['jqueryui'] = array(
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#title' => t('jQuery Dialog Settings'),
+      '#description' => t('Integration of jQuery UI Dialogs. NOT WORKING YET!!!'),
+    );
+    $form['advanced_settings']['javascript']['jqueryui']['autodl_dialog1'] = array(
+      '#type' => 'checkbox',
+      '#default_value' => variable_get('autodl_dialog1'), 
+      '#title' => t('Enable standard jQuery UI Dialog for autodownloads.'),
+      '#description' => t('Enabling this option will allow you to use a simple jQuery UI dialog with the auto-download. The title and caption will be built for you.'),
+    );
     //submit the form
     $form['submit'] = array(
         '#type' => 'submit',
@@ -292,6 +292,9 @@ function autodownload_configure_advanced_form_submit($form, &$form_state){
     variable_set('autodl_method', $form_state['values']['autodl_method']);
     if($form_state['values']['autodl_timeout'] == 1){
     variable_set('autodl_timeout',1);
+    }
+    else{
+    variable_set('autodl_timeout',0);
     }
     variable_set('autodl_timeout_seconds', $form_state['values']['autodl_timeout_seconds']);
     if($form_state['values']['autodl_dialog1'] == 1){
