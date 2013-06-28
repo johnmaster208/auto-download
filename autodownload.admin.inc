@@ -230,9 +230,9 @@ function autodownload_configure_advanced_form($form, &$form_state){
       '#type' => 'fieldset',
       '#collapsible' => TRUE,
       '#title' => t('Method Settings'),
-      '#description' => 'Choose the method by which the auto-download initiates. The two (2) methods are as follows: 
+      '#description' => 'Choose the method by which the auto-download initiates. The three (3) methods are as follows: 
        <ul>
-          <li>Simple -- Uses drupal_add_html_head() to force a "refresh" meta tag with content attribute pointed at the download URL.</li> 
+          <li>Simple -- <strong>(Recommended)</strong>. Uses drupal_add_html_head() to force a "refresh" meta tag with content attribute pointed at the download URL.</li> 
           <li>iFrame -- Uses setTimeout() in Javascript to a borderless iFrame to the document with "src" attribute set to the target URL</li>
           <li>HTML5 -- Similar to the iFrame method; Instantiates an HTML5 hyperlink on the page with the "download" attribute set to the URL</li>
       </ul>',
@@ -271,8 +271,9 @@ function autodownload_configure_advanced_form($form, &$form_state){
     $form['advanced_settings']['javascript']['jqueryui'] = array(
       '#type' => 'fieldset',
       '#collapsible' => TRUE,
-      '#title' => t('jQuery Dialog Settings'),
-      '#description' => t('Integration of jQuery UI Dialogs. NOT WORKING YET!!!'),
+      '#collapsed' => TRUE,
+      '#title' => t('jQuery Dialog Settings'). '<span style="color:red; font-size:14px;margin-left:20px;">NOT WORKING YET</span>',
+      '#description' => t('Integration of jQuery UI Dialogs.'),
     );
     $form['advanced_settings']['javascript']['jqueryui']['autodl_dialog1'] = array(
       '#type' => 'checkbox',
